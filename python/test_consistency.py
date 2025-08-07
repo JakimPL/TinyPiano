@@ -44,7 +44,7 @@ def test_consistency():
         c_test_code = f'''
 #include <stdio.h>
 #include <math.h>
-#include "piano_model_with_weights.c"
+#include "src/model.h"
 
 int main() {{
     float result = predict_amplitude({pitch}f, {velocity}f, {harmonic}f, {time}f);
@@ -62,7 +62,7 @@ int main() {{
             # Compile and run C test
             temp_exe = temp_c_file.replace('.c', '')
             compile_result = subprocess.run([
-                'gcc', '-o', temp_exe, temp_c_file, '-lm'
+                'gcc', '-o', temp_exe, temp_c_file, 'src/model.c', 'src/weights.c', '-lm'
             ], capture_output=True, text=True)
             
             if compile_result.returncode == 0:

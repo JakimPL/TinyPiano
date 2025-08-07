@@ -5,3 +5,7 @@
 *.pyc
 
 model
+test_*
+
+models/
+data/

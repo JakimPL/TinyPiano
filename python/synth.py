@@ -89,7 +89,7 @@ def synthesize_note(
 
         waveform = torch.zeros(N, dtype=torch.float32, device=device)
 
-        for h in range(1, max_harmonics + 1):
+        for h in range(0, max_harmonics + 1):
             harmonic_tensor = torch.full((N,), float(h) / max_harmonics, dtype=torch.float32, device=device)
 
             amp = model(pitch_tensor, velocity_tensor, harmonic_tensor, time_tensor)  # (N,)
@@ -99,7 +99,7 @@ def synthesize_note(
             waveform += amp * sine_wave
 
         # Normalize to [-1, 1]
-        waveform /= waveform.abs().max().clamp(min=1e-6)
+        # waveform /= waveform.abs().max().clamp(min=1e-6)
         return waveform.cpu().numpy().astype(np.float32)
 
 

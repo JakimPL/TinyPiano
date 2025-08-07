@@ -40,7 +40,7 @@ def extract_weights_and_generate_c():
         state_dict = torch.load(MODEL_PATH, map_location='cpu')
         model.load_state_dict(state_dict)
     else:
-        print(f"Warning: {MODEL_PATH} not found. Using random weights.")
+        raise FileNotFoundError(f"Trained model not found at {MODEL_PATH}. Please train the model first or provide a valid model file.")
 
     model.eval()
 
@@ -77,24 +77,24 @@ def extract_weights_and_generate_c():
 
     print(f"Generated weights C file written to {output_file}")
 
-    if MODEL_PATH.exists():
-        print("\nTesting consistency between Python and C models...")
-        test_inputs = [
-            (0.5, 0.8, 0.1, 0.3),
-            (0.0, 0.5, 0.0, 0.0),
-            (1.0, 1.0, 1.0, 1.0),
-        ]
+    print("\nTesting Python model outputs with trained weights...")
+    test_inputs = [
+        (0.5, 0.5, 0.0, 0.0),  # Your test case
+        (0.5, 0.8, 0.1, 0.3),
+        (0.0, 0.5, 0.0, 0.0),
+        (1.0, 1.0, 1.0, 1.0),
+    ]
 
-        for pitch, velocity, harmonic, time in test_inputs:
-            with torch.no_grad():
-                py_result = model(
-                    torch.tensor([pitch]),
-                    torch.tensor([velocity]),
-                    torch.tensor([harmonic]),
-                    torch.tensor([time])
-                ).item()
+    for pitch, velocity, harmonic, time in test_inputs:
+        with torch.no_grad():
+            py_result = model(
+                torch.tensor([pitch]),
+                torch.tensor([velocity]),
+                torch.tensor([harmonic]),
+                torch.tensor([time])
+            ).item()
 
-            print(f"Python model({pitch}, {velocity}, {harmonic}, {time}) = {py_result:.6f}")
+        print(f"Python model({pitch}, {velocity}, {harmonic}, {time}) = {py_result:.6f}")
 
 if __name__ == "__main__":
     extract_weights_and_generate_c()
