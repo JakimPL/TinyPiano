@@ -58,7 +58,37 @@ def extract_weights_and_generate_c():
     for i, layer in enumerate(linear_layers):
         print(f"  Layer {i}: {layer.weight.shape[1]} -> {layer.weight.shape[0]}")
 
-    # Generate only weights file
+    input_size = linear_layers[0].weight.shape[1]
+    hidden1_size = linear_layers[0].weight.shape[0]
+    hidden2_size = linear_layers[1].weight.shape[0]
+    hidden3_size = linear_layers[2].weight.shape[0]
+    output_size = linear_layers[3].weight.shape[0]
+
+    # Generate weights header file with architecture constants
+    header_code = f'''#pragma once
+
+#define INPUT_SIZE {input_size}
+#define HIDDEN1_SIZE {hidden1_size}
+#define HIDDEN2_SIZE {hidden2_size}
+#define HIDDEN3_SIZE {hidden3_size}
+#define OUTPUT_SIZE {output_size}
+
+extern float weights1[];
+extern float biases1[];
+extern float weights2[];
+extern float biases2[];
+extern float weights3[];
+extern float biases3[];
+extern float weights_out[];
+extern float biases_out[];
+'''
+
+    header_file = WEIGHTS_PATH.parent / "weights.h"
+    with open(header_file, 'w') as f:
+        f.write(header_code)
+
+    print(f"Generated weights header written to {header_file}")
+
     c_code = '''#include "weights.h"
 
 '''
@@ -79,7 +109,7 @@ def extract_weights_and_generate_c():
 
     print("\nTesting Python model outputs with trained weights...")
     test_inputs = [
-        (0.5, 0.5, 0.0, 0.0),  # Your test case
+        (0.5, 0.5, 0.0, 0.0),
         (0.5, 0.8, 0.1, 0.3),
         (0.0, 0.5, 0.0, 0.0),
         (1.0, 1.0, 1.0, 1.0),
