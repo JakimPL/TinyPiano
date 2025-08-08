@@ -3,6 +3,12 @@
 **/*.ipynb_checkpoints/**
 **/*__pycache__/**
 *.pyc
+*.o
+*.txt
+*.mid
+*.midi
+*.wav
+*.mp3
 
 model
 test_*

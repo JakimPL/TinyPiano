@@ -6,7 +6,6 @@
 #define HIDDEN3_SIZE 4
 #define OUTPUT_SIZE 1
 
-// External declarations for weight arrays
 extern float weights1[];
 extern float biases1[];
 extern float weights2[];
