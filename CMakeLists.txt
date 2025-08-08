@@ -59,7 +59,7 @@ target_link_libraries(tinypiano_midi ${MATH_LIBRARY})
 add_library(tinypiano_io STATIC ${IO_SOURCES})
 
 add_executable(model src/main.c)
-target_link_libraries(model tinypiano_core)
+target_link_libraries(model tinypiano_midi)
 
 add_executable(test_model src/tests/test_model_output.c)
 target_link_libraries(test_model tinypiano_core)

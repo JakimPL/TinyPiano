@@ -163,5 +163,5 @@ Song* create_midi_song(void) {
         {82, 65, 15200, 160, 0},
     };
 
-    return create_song(notes, 159, 80);
+    return create_song(notes, 159, 96);
 }
