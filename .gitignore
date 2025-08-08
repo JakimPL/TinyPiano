@@ -13,5 +13,9 @@
 model
 test_*
 
+bin/
+build/
 models/
 data/
+
+!CMakeLists.txt

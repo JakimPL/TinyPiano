@@ -5,10 +5,20 @@ This project implements a complete piano synthesizer using a neural network for 
 ## Quick Overview
 
 ```bash
-# Setup and test
-make                      # Build core model
-make test                 # Build and run all tests
-make size                 # Check binary sizes
+# Setup development environment (one-time)
+./setup.sh
+
+# Build project
+./build.sh
+
+# Build and run tests
+./build.sh --test
+
+# Debug build
+./build.sh --debug
+
+# Manual pre-commit checks
+pre-commit run --all-files
 ```
 
 **Core Components:**
@@ -59,23 +69,77 @@ make size                 # Check binary sizes
 - **`midi/test.mid`** - Example MIDI file for testing
 - **`data/`** - Processed training data and archives
 
+### Build & Development Tools
+- **`CMakeLists.txt`** - Modern CMake build configuration
+- **`build.sh`** - Convenient build script with options
+- **`setup.sh`** - Development environment setup
+- **`.pre-commit-config.yaml`** - Automated code quality checks
+- **`build/`** - CMake build directory (auto-generated)
+- **`bin/`** - Compiled executables
+
+## Build System
+
+The project uses CMake for organized builds and pre-commit for code quality.
+
+### Build Commands
+```bash
+./build.sh              # Release build
+./build.sh --debug      # Debug build
+./build.sh --clean      # Clean build
+./build.sh --test       # Build and run tests
+```
+
+### CMake Targets (from build/ directory)
+```bash
+cd build
+make model              # Core neural network program
+make test_model         # Neural network tests
+make test_synth         # Synthesizer tests
+make test_song          # Song player tests
+make test_all           # Run all tests
+make size               # Show binary sizes
+```
+
+### Pre-commit Hooks
+
+Automated quality checks run on every commit:
+
+```bash
+git commit               # Automatically runs all checks
+pre-commit run           # Manual check on staged files
+pre-commit run --all-files  # Check all files
+```
+
+**Hooks included:**
+- Extract neural network weights from PyTorch model
+- Clean CMake build and compilation check
+- Full test suite execution
+- Python code formatting (black, isort)
+- File checks (whitespace, large files, etc.)
+
+### Development Workflow
+
+1. **Setup**: `./setup.sh` (one-time setup)
+2. **Develop**: Edit code in `src/`
+3. **Build**: `./build.sh` or CMake targets
+4. **Test**: `./build.sh --test`
+5. **Commit**: `git commit` (triggers pre-commit checks)
+
 ## Quick Start
 
 ```bash
-# 1. Generate C weights from trained model
-python python/extract_weights.py
+# 1. Setup development environment (includes weights extraction)
+./setup.sh
 
-# 2. Convert MIDI to C song data
+# 2. Convert MIDI to C song data (optional)
 python python/convert_midi.py midi/test.mid
 
-# 3. Build all programs
-make all
+# 3. Build and test
+./build.sh --test
 
-# 4. Test components
-make test
-
-# 5. Clean build artifacts
-make clean
+# 4. Or build individual components
+./build.sh               # Release build
+./build.sh --debug       # Debug build
 ```
 
 ## Usage Examples
@@ -157,7 +221,10 @@ gcc -O2 -o player your_program.c src/song.c src/synth.c src/model.c src/weights.
 ### Tests
 ```bash
 # Build and run all tests
-make test
+./build.sh --test
+
+# Or using CMake directly (from build/ directory)
+cd build && make test_all
 ```
 
 ## Performance & Code Size
@@ -193,8 +260,8 @@ make test
 ### Retrain Neural Network
 1. Update PyTorch model in `python/model.py`
 2. Train and save to `models/tiny.pth`
-3. Run `python python/extract_weights.py`
-4. Rebuild with `make`
+3. Run `./setup.sh` or `python python/extract_weights.py`
+4. Rebuild with `./build.sh`
 
 ### Add New MIDI Songs
 1. Place MIDI file in `midi/` directory

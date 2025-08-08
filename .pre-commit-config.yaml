@@ -1,0 +1,53 @@
+repos:
+  # Local hooks for TinyPiano C project
+  - repo: local
+    hooks:
+      - id: extract-weights
+        name: Extract neural network weights
+        entry: python3 python/extract_weights.py
+        language: system
+        pass_filenames: false
+        files: '^(models/.*\.pth|python/extract_weights\.py)$'
+
+      - id: cmake-build
+        name: CMake clean build
+        entry: bash -c './build.sh --clean'
+        language: system
+        pass_filenames: false
+        files: '^(src/.*\.(c|h)|CMakeLists\.txt)$'
+
+      - id: run-tests
+        name: Run test suite
+        entry: bash -c 'cd build && make test_all'
+        language: system
+        pass_filenames: false
+        files: '^src/.*\.(c|h)$'
+
+  # Standard file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(song_output\.txt|data/.*\.pkl)$'
+      - id: end-of-file-fixer
+        exclude: '^(song_output\.txt|data/.*\.pkl)$'
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        files: '^python/.*\.py$'
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: '^python/.*\.py$'
+        args: ["--profile", "black"]
