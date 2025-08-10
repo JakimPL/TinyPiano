@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "src/song.h"
-#include "src/synth.h"
+
+#include "../song.h"
+#include "../synth.h"
+#include "../io.h"
 #include "test_data.h"
-#include "src/io.h"
 
 int main() {
     printf("Piano Song Player Test\n");
@@ -58,7 +59,7 @@ int main() {
         float abs_val = fabsf(buffer[i]);
         if (abs_val > peak) peak = abs_val;
     }
-    rms = sqrtf(rms / samples_written);
+    rms = powf(rms / samples_written, 0.5f);
 
     printf("  RMS level: %.6f\n", rms);
     printf("  Peak level: %.6f\n", peak);

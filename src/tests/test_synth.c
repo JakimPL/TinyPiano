@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "src/synth.h"
+
+#include "../synth.h"
 
 int main() {
     int pitch = 69;
@@ -39,7 +40,7 @@ int main() {
     for (size_t i = 0; i < samples_written; i++) {
         rms += buffer[i] * buffer[i];
     }
-    rms = sqrtf(rms / samples_written);
+    rms = powf(rms / samples_written, 0.5f);
     printf("\nRMS level: %.6f\n", rms);
 
     float peak = 0.0f;

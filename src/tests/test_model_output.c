@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
-#include "src/model.h"
+
+#include "../model.h"
 
 int main() {
     float pitch = 0.5f;

@@ -1,83 +1,67 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -O2 -std=c99 -I.
-LDFLAGS = -lm
+# TinyPiano - Simple build system
+# CMake files go to build/, final executables go to bin/
 
-# Source directories
-SRC_DIR = src
-TEST_DIR = src/tests
+BUILD_DIR = build
+BIN_DIR = bin
+CMAKE_BUILD_TYPE ?= Release
 
-# Core object files
-CORE_OBJS = $(SRC_DIR)/model.o $(SRC_DIR)/weights.o
-SYNTH_OBJS = $(CORE_OBJS) $(SRC_DIR)/synth.o
-SONG_OBJS = $(SYNTH_OBJS) $(SRC_DIR)/song.o
-MIDI_OBJS = $(SONG_OBJS) $(SRC_DIR)/data.o
+# Default target
+all: setup build
 
-# Main targets
-all: extract_weights convert_midi model
+# Setup CMake build directory 
+setup:
+	@echo "Setting up CMake build directory..."
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BIN_DIR)
+	cd $(BUILD_DIR) && cmake .. -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 
-# Core programs
-model: $(SRC_DIR)/main.c $(CORE_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+# Build all targets
+build: setup
+	@echo "Building TinyPiano..."
+	cd $(BUILD_DIR) && make -j
 
-# Test programs (built on demand)
-test_model: $(TEST_DIR)/test_model_output.c $(CORE_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+# Build specific targets
+tinypiano: setup
+	cd $(BUILD_DIR) && make tinypiano -j
 
-test_synth: $(TEST_DIR)/test_synth.c $(SYNTH_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+tinypiano_4k: setup
+	cd $(BUILD_DIR) && make tinypiano_4k -j
 
-test_song: $(TEST_DIR)/test_song.c $(SONG_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-# Build and run all tests
-test: test_model test_synth test_song
-	@echo "Running neural network test..."
-	./test_model
-	@echo "\nRunning synthesizer test..."
-	./test_synth
-	@echo "\nRunning song player test..."
-	./test_song
-	@echo "\nAll tests completed."
+# Run all tests (matching pre-commit hook)
+test_all: setup
+	cd $(BUILD_DIR) && make test_all
 
 # Python tools
-extract_weights: python/extract_weights.py
-	python3 python/extract_weights.py
+extract_weights:
+	@echo "Extracting neural network weights..."
+	python python/extract_weights.py
 
-convert_midi: python/convert_midi.py
-	@echo "MIDI converter ready. Usage: python3 python/convert_midi.py midi/file.mid"
+convert_midi: setup
+	cd $(BUILD_DIR) && make convert_midi
 
-# Object file compilation
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Clean up
+# Clean everything
 clean:
-	rm -f model test_model test_synth test_song
-	rm -f $(SRC_DIR)/*.o
+	@echo "Cleaning all build artifacts..."
+	rm -rf $(BUILD_DIR)
+	rm -rf $(BIN_DIR)
 	rm -f song_output.txt
 
-# Development helpers
-size: model
-	@echo "Binary sizes:"
-	@ls -lh model test_* 2>/dev/null | awk '{print $$9 ": " $$5}' || true
-	@echo "Core library sizes:"
-	@wc -c $(SRC_DIR)/*.o 2>/dev/null | tail -1 || true
+# Clean and rebuild
+rebuild: clean all
 
-install_deps:
-	@echo "Installing Python dependencies..."
-	pip install torch mido
+# Show available targets
+info:
+	@echo "TinyPiano Build System"
+	@echo "====================="
+	@echo "Available targets:"
+	@echo "  all           - Setup and build everything"
+	@echo "  build         - Build all targets"
+	@echo "  tinypiano     - Build standard executable"
+	@echo "  tinypiano_4k  - Build 4KB demo with Crinkler"
+	@echo "  test_all      - Build and run all tests"
+	@echo "  extract_weights - Extract neural network weights"
+	@echo "  convert_midi  - Convert MIDI files"
+	@echo "  clean         - Remove all build artifacts"
+	@echo "  rebuild       - Clean and rebuild everything"
 
-# Generate object files for Crinkler
-crinkler_objects: $(SRC_DIR)/main.o $(SRC_DIR)/model.o $(SRC_DIR)/song.o $(SRC_DIR)/data.o $(SRC_DIR)/synth.o $(SRC_DIR)/weights.o
-	@echo "Object files ready for Crinkler:"
-	@echo "  $(SRC_DIR)/main.o"
-	@echo "  $(SRC_DIR)/model.o"
-	@echo "  $(SRC_DIR)/song.o"
-	@echo "  $(SRC_DIR)/data.o"
-	@echo "  $(SRC_DIR)/synth.o"
-	@echo "  $(SRC_DIR)/weights.o"
-	@echo ""
-	@echo "Use with Crinkler:"
-	@echo "crinkler.exe $(SRC_DIR)/main.o $(SRC_DIR)/model.o $(SRC_DIR)/song.o $(SRC_DIR)/data.o $(SRC_DIR)/synth.o $(SRC_DIR)/weights.o /OUT:tinypiano.exe"
-
-.PHONY: all test clean extract_weights convert_midi size install_deps crinkler_objects
+.PHONY: all setup build tinypiano tinypiano_4k test_all extract_weights convert_midi clean rebuild info
