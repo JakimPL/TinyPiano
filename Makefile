@@ -15,23 +15,19 @@ setup:
 	mkdir -p $(BIN_DIR)
 	cd $(BUILD_DIR) && cmake .. -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 
-# Build all targets
 build: setup
 	@echo "Building TinyPiano..."
 	cd $(BUILD_DIR) && make -j
 
-# Build specific targets
 tinypiano: setup
 	cd $(BUILD_DIR) && make tinypiano -j
 
 tinypiano_4k: setup
 	cd $(BUILD_DIR) && make tinypiano_4k -j
 
-# Run all tests (matching pre-commit hook)
 test_all: setup
 	cd $(BUILD_DIR) && make test_all
 
-# Python tools
 extract_weights:
 	@echo "Extracting neural network weights..."
 	python python/extract_weights.py
@@ -39,17 +35,14 @@ extract_weights:
 convert_midi: setup
 	cd $(BUILD_DIR) && make convert_midi
 
-# Clean everything
 clean:
 	@echo "Cleaning all build artifacts..."
 	rm -rf $(BUILD_DIR)
 	rm -rf $(BIN_DIR)
 	rm -f song_output.txt
 
-# Clean and rebuild
 rebuild: clean all
 
-# Show available targets
 info:
 	@echo "TinyPiano Build System"
 	@echo "====================="
