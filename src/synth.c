@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include <math.h>
 #include <string.h>
+
+#include "math.h"
 #include "synth.h"
 #include "model.h"
 

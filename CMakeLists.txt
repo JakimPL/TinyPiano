@@ -18,8 +18,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/lib)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
-find_library(MATH_LIBRARY m)
-
 set(CORE_SOURCES
     src/model.c
     src/weights.c
@@ -45,16 +43,16 @@ set(IO_SOURCES
 )
 
 add_library(tinypiano_core STATIC ${CORE_SOURCES})
-target_link_libraries(tinypiano_core ${MATH_LIBRARY})
+target_link_libraries(tinypiano_core)
 
 add_library(tinypiano_synth STATIC ${SYNTH_SOURCES})
-target_link_libraries(tinypiano_synth ${MATH_LIBRARY})
+target_link_libraries(tinypiano_synth)
 
 add_library(tinypiano_song STATIC ${SONG_SOURCES})
-target_link_libraries(tinypiano_song ${MATH_LIBRARY})
+target_link_libraries(tinypiano_song)
 
 add_library(tinypiano_midi STATIC ${MIDI_SOURCES})
-target_link_libraries(tinypiano_midi ${MATH_LIBRARY})
+target_link_libraries(tinypiano_midi)
 
 add_library(tinypiano_io STATIC ${IO_SOURCES})
 

@@ -67,4 +67,17 @@ install_deps:
 	@echo "Installing Python dependencies..."
 	pip install torch mido
 
-.PHONY: all test clean extract_weights convert_midi size install_deps
+# Generate object files for Crinkler
+crinkler_objects: $(SRC_DIR)/main.o $(SRC_DIR)/model.o $(SRC_DIR)/song.o $(SRC_DIR)/data.o $(SRC_DIR)/synth.o $(SRC_DIR)/weights.o
+	@echo "Object files ready for Crinkler:"
+	@echo "  $(SRC_DIR)/main.o"
+	@echo "  $(SRC_DIR)/model.o"
+	@echo "  $(SRC_DIR)/song.o"
+	@echo "  $(SRC_DIR)/data.o"
+	@echo "  $(SRC_DIR)/synth.o"
+	@echo "  $(SRC_DIR)/weights.o"
+	@echo ""
+	@echo "Use with Crinkler:"
+	@echo "crinkler.exe $(SRC_DIR)/main.o $(SRC_DIR)/model.o $(SRC_DIR)/song.o $(SRC_DIR)/data.o $(SRC_DIR)/synth.o $(SRC_DIR)/weights.o /OUT:tinypiano.exe"
+
+.PHONY: all test clean extract_weights convert_midi size install_deps crinkler_objects
