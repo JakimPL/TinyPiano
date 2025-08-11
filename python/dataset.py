@@ -60,6 +60,7 @@ class HarmonicsArchive:
     notes: Dict[Tuple[int, int], NoteHarmonics] = field(default_factory=dict)
 
     def save(self, path: Union[str, Path]):
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump({k: v.to_dict() for k, v in self.notes.items()}, f, protocol=pickle.HIGHEST_PROTOCOL)
 

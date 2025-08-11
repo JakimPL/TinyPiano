@@ -21,12 +21,13 @@ setup:
 venv:
 	@echo "Setting up Python virtual environment..."
 	@if [ ! -d "$(VENV_DIR)" ]; then \
-		python -m venv $(VENV_DIR); \
+		python -m venv $(VENV_DIR) --upgrade-deps; \
 	fi
 	@echo "Installing Python dependencies..."
-	$(PIP_VENV) install --upgrade pip
-	$(PIP_VENV) install numpy ipython scipy torch
-	$(PIP_VENV) install -r python/requirements.txt
+	$(PYTHON_VENV) -m ensurepip --upgrade
+	$(PYTHON_VENV) -m pip install --upgrade pip
+	$(PYTHON_VENV) -m pip install numpy ipython scipy torch
+	$(PYTHON_VENV) -m pip install -r python/requirements.txt
 
 dataset:
 	@echo "Building dataset from samples..."

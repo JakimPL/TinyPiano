@@ -1,12 +1,10 @@
-from IPython.display import Audio
+import numpy as np
 import torch
+from IPython.display import Audio
 
 from constants import SAMPLE_RATE, MAX_HARMONICS
 from dataset import NoteHarmonics
 from notes import calculate_frequency
-
-import numpy as np
-
 
 def resynthesize_note(note: NoteHarmonics, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
     times = note.times  # shape (T_fft,), times of FFT windows in seconds

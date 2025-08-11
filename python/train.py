@@ -108,7 +108,7 @@ def train_model(
     model.train()
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
-        for b_pitch, b_vel, b_harm, b_time, b_target in tqdm(train_loader, desc=f"Epoch {epoch:02d}/{epochs}"):
+        for b_pitch, b_vel, b_harm, b_time, b_target in tqdm(train_loader, desc=f"Epoch {epoch}/{epochs}"):
             b_pitch = b_pitch.to(device)
             b_vel = b_vel.to(device)
             b_harm = b_harm.to(device)
@@ -155,9 +155,14 @@ def train_and_save(
     loss_fn = torch.nn.MSELoss()
 
     # Train
-    train_model(model, train_loader, loss_fn, optimizer, DEVICE, epochs)
+    try:
+        train_model(model, train_loader, loss_fn, optimizer, DEVICE, epochs)
+    except KeyboardInterrupt:
+        print("Training interrupted. Saving current model state...")
 
     # Save model
+    model_path = Path(model_path)
+    model_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), model_path)
 
     return model

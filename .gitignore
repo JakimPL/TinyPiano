@@ -14,12 +14,15 @@
 *.midi
 *.wav
 *.mp3
+*.ipynb
 
 model
 
 bin/
 build/
-models/
 data/
+models/
+venv/
 
 !CMakeLists.txt
+!requirements.txt

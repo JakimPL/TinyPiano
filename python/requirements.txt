@@ -1,0 +1,7 @@
+ipython
+mido
+numpy
+pydub
+scipy
+torch
+tqdm
