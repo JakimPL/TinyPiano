@@ -1,41 +1,16 @@
-#!/usr/bin/env python3
-"""
-Script to convert MIDI files to our custom song format and generate C code.
-"""
-
 import mido
 import argparse
+
 from pathlib import Path
 from typing import List, Tuple, Optional
 from constants import TICKS_PER_QUARTER, DEFAULT_BPM, SONG_PATH
 
 def quantize_time(time_ticks: int, quantize_level: int) -> int:
-    """
-    Quantize time to the nearest quantization level.
-
-    Args:
-        time_ticks: Time in ticks
-        quantize_level: Quantization level (e.g., 120 = 32nd note, 240 = 16th note)
-
-    Returns:
-        Quantized time in ticks
-    """
     if quantize_level <= 0:
         return time_ticks
     return round(time_ticks / quantize_level) * quantize_level
 
 def midi_to_notes(midi_file: str, quantize_level: int = 0, max_duration: Optional[float] = None) -> Tuple[List[tuple], int]:
-    """
-    Convert MIDI file to list of notes.
-
-    Args:
-        midi_file: Path to MIDI file
-        quantize_level: Quantization level in ticks (0 = no quantization)
-        max_duration: Maximum song duration in seconds (None = no limit)
-
-    Returns:
-        Tuple of (notes_list, bpm) where notes_list contains (pitch, velocity, start, duration) tuples
-    """
     try:
         mid = mido.MidiFile(midi_file)
     except Exception as e:
@@ -57,20 +32,14 @@ def midi_to_notes(midi_file: str, quantize_level: int = 0, max_duration: Optiona
     print(f"  Ticks per beat: {mid.ticks_per_beat}")
     print(f"  BPM: {bpm}")
 
-    # Convert MIDI ticks to our tick format
-    # MIDI files can have different ticks_per_beat, we normalize to our TICKS_PER_QUARTER
     tick_scale = TICKS_PER_QUARTER / mid.ticks_per_beat
-
-    # Track note on/off events
     active_notes = {}  # note_pitch -> (start_time, velocity)
     notes = []
 
-    current_time = 0
     max_time_ticks = None
     if max_duration:
         max_time_ticks = int(max_duration * bpm * TICKS_PER_QUARTER / 60)
 
-    # Process all tracks
     for track_idx, track in enumerate(mid.tracks):
         current_time = 0
         print(f"\nProcessing track {track_idx}: {track.name}")
@@ -78,18 +47,15 @@ def midi_to_notes(midi_file: str, quantize_level: int = 0, max_duration: Optiona
         for msg in track:
             current_time += int(msg.time * tick_scale)
 
-            # Stop if we've exceeded max duration
             if max_time_ticks and current_time > max_time_ticks:
                 break
 
             if msg.type == 'note_on' and msg.velocity > 0:
-                # Note on
                 key = (msg.channel, msg.note)
                 start_time = quantize_time(current_time, quantize_level)
                 active_notes[key] = (start_time, msg.velocity)
 
             elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
-                # Note off
                 key = (msg.channel, msg.note)
                 if key in active_notes:
                     start_time, velocity = active_notes[key]
@@ -105,18 +71,16 @@ def midi_to_notes(midi_file: str, quantize_level: int = 0, max_duration: Optiona
                     notes.append((pitch, velocity, start_time, duration))
                     del active_notes[key]
 
-    # Handle any remaining active notes (force them to end)
     if active_notes:
         print(f"Warning: {len(active_notes)} notes were still active at end of file")
         for key, (start_time, velocity) in active_notes.items():
             channel, note = key
-            duration = max(1, min(65535, TICKS_PER_QUARTER))  # Default to quarter note
+            duration = max(1, min(65535, TICKS_PER_QUARTER))
             pitch = max(0, min(127, note))
             velocity = max(1, min(127, velocity))
             start_time = max(0, min(65535, start_time))
             notes.append((pitch, velocity, start_time, duration))
 
-    # Sort notes by start time
     notes.sort(key=lambda x: x[2])
 
     print(f"\nExtracted {len(notes)} notes")

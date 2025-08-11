@@ -1,16 +1,29 @@
+from pathlib import Path
+from typing import List, Tuple, Union
+
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch import Tensor
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
+from constants import MODEL_PATH
+from dataset import HarmonicTorchDataset, HarmonicsArchive
+from model import DirectTinyHarmonicModel
+
+# Default training parameters
+HIDDEN_SIZES = (64, 64, 32)
 BATCH_SIZE = 1024
 LEARNING_RATE = 1e-2
 EPOCHS = 20
 T = 64
+
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def flatten_dataset(ds, time_grid: np.ndarray):
+def flatten_dataset(ds: HarmonicTorchDataset, time_grid: np.ndarray) -> Tuple[List[Tuple[float, float, float, float]], List[float]]:
     inputs, targets = [], []
     for pitch, velocity, harmonic, amplitudes in tqdm(ds, desc="Flattening dataset"):
         for i, t in enumerate(time_grid):
@@ -19,7 +32,7 @@ def flatten_dataset(ds, time_grid: np.ndarray):
     return inputs, targets
 
 
-def collate_batch(inputs, targets):
+def collate_batch(inputs: List[Tuple[float, float, float, float]], targets: List[float]) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
     pitch = torch.tensor([x[0] for x in inputs], dtype=torch.float32)
     velocity = torch.tensor([x[1] for x in inputs], dtype=torch.float32)
     harmonic = torch.tensor([x[2] for x in inputs], dtype=torch.float32)
@@ -28,40 +41,17 @@ def collate_batch(inputs, targets):
     return pitch, velocity, harmonic, time, target
 
 
-def loss_rmse(y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
-    """
-    Root Mean Squared Error (RMSE) between predicted and true amplitudes.
-
-    Args:
-        y_pred: predicted tensor of shape (B, T)
-        y_true: target tensor of shape (B, T)
-
-    Returns:
-        Scalar RMSE loss
-    """
+def loss_rmse(y_pred: Tensor, y_true: Tensor) -> Tensor:
     return torch.sqrt(F.mse_loss(y_pred, y_true) + 1e-9)
 
 
 def loss_mssl(
-        y_pred: torch.Tensor,  # (B, T)
-        y_true: torch.Tensor,  # (B, T)
-        fft_sizes=(64, 128, 256),
+        y_pred: Tensor,
+        y_true: Tensor,
+        fft_sizes: Tuple[int, ...] = (64, 128, 256),
         hop_size_factor: float = 0.25,
-        window_fn=torch.hann_window,
-) -> torch.Tensor:
-    """
-    Multi-Scale Spectral Loss (MSSL) for time-domain signals.
-
-    Args:
-        y_pred: predicted waveform tensor of shape (B, T)
-        y_true: target waveform tensor of shape (B, T)
-        fft_sizes: tuple of FFT sizes to compute STFTs at multiple scales
-        hop_size_factor: hop length as a fraction of FFT size
-        window_fn: torch window function (default: hann)
-
-    Returns:
-        Scalar loss (average over all FFT scales)
-    """
+        window_fn: callable = torch.hann_window,
+) -> Tensor:
     device = y_pred.device
     loss = 0.0
 
@@ -69,9 +59,11 @@ def loss_mssl(
         hop_length = int(fft_size * hop_size_factor)
         win = window_fn(fft_size).to(device)
 
-        def stft_mag(x):
-            return torch.stft(x, n_fft=fft_size, hop_length=hop_length,
-                              window=win, return_complex=True).abs()
+        def stft_mag(x: Tensor) -> Tensor:
+            return torch.stft(
+                x, n_fft=fft_size, hop_length=hop_length,
+                window=win, return_complex=True
+            ).abs()
 
         x_mag = stft_mag(y_pred)
         y_mag = stft_mag(y_true)
@@ -85,51 +77,45 @@ def loss_mssl(
 
 
 def loss_function(
-        y_pred: torch.Tensor,
-        y_true: torch.Tensor,
+        y_pred: Tensor,
+        y_true: Tensor,
         alpha: float = 0.1,
-        fft_sizes=(64, 128, 256),
+        fft_sizes: Tuple[int, ...] = (64, 128, 256),
         hop_size_factor: float = 0.25,
-        window_fn=torch.hann_window,
-) -> torch.Tensor:
-    """
-    Combined loss: alpha * RMSE + (1 - alpha) * MSSL
-
-    Args:
-        y_pred: predicted waveform tensor of shape (B, T)
-        y_true: target waveform tensor of shape (B, T)
-        alpha: weighting factor for RMSE (default: 0.5)
-        fft_sizes: FFT sizes for MSSL
-        hop_size_factor: hop length as fraction of FFT size
-        window_fn: window function for STFT
-
-    Returns:
-        Scalar combined loss
-    """
+        window_fn: callable = torch.hann_window,
+) -> Tensor:
     rmse = loss_rmse(y_pred, y_true)
     mssl = loss_mssl(y_pred, y_true, fft_sizes, hop_size_factor, window_fn)
     return alpha * rmse + (1.0 - alpha) * mssl
 
 
-def add_jitter(x: torch.Tensor, std: float = 1e-3) -> torch.Tensor:
+def add_jitter(x: Tensor, std: float = 1e-3) -> Tensor:
     if not x.requires_grad:  # optional: avoid during eval
         return x
     return x + torch.randn_like(x) * std
 
 
-def train_model(model, train_loader, loss_fn, optimizer, device, epochs,
-                vel_jitter_std=1e-3, time_jitter_std=5e-3):
+def train_model(
+        model: DirectTinyHarmonicModel,
+        train_loader: DataLoader,
+        loss_fn: callable,
+        optimizer: torch.optim.Optimizer,
+        device: torch.device,
+        epochs: int,
+        vel_jitter_std: float = 1e-3,
+        time_jitter_std: float = 5e-3
+) -> None:
     model.train()
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
-        for b_pitch, b_vel, b_harm, b_time, b_target in tqdm(train_loader, desc=f"Epoch {epoch:02d}"):
+        for b_pitch, b_vel, b_harm, b_time, b_target in tqdm(train_loader, desc=f"Epoch {epoch:02d}/{epochs}"):
             b_pitch = b_pitch.to(device)
             b_vel = b_vel.to(device)
             b_harm = b_harm.to(device)
             b_time = b_time.to(device)
             b_target = b_target.to(device)
 
-            # ✅ Apply jitter to continuous inputs
+            # Apply jitter
             b_vel_j = add_jitter(b_vel, std=vel_jitter_std)
             b_time_j = add_jitter(b_time, std=time_jitter_std)
 
@@ -144,26 +130,34 @@ def train_model(model, train_loader, loss_fn, optimizer, device, epochs,
         print(f"Epoch {epoch:02d} - MSE Loss: {avg_loss:.6f}")
 
 
-def evaluate_model(model, dataset, time_grid, device):
-    model.eval()
-    harmonic_errors = []
+def train_and_save(
+        archive: HarmonicsArchive,
+        hidden_sizes: Tuple[int, ...] = HIDDEN_SIZES,
+        epochs: int = EPOCHS,
+        batch_size: int = BATCH_SIZE,
+        learning_rate: float = LEARNING_RATE,
+        model_path: Union[str, Path] = MODEL_PATH,
+) -> DirectTinyHarmonicModel:
+    common_times = np.linspace(0.0, 4.0, T, dtype=np.float32)
+    dataset = HarmonicTorchDataset(archive, time_grid=common_times, use_log=True, return_torch=False)
 
-    with torch.no_grad():
-        for item in tqdm(dataset, desc="Evaluating"):
-            pitch = item["pitch"]
-            velocity = item["velocity"]
-            harmonic = item["harmonic"]
-            true = np.exp(item["amplitudes"])
+    # Flatten data to (p, v, h, t) → amplitude
+    flat_inputs, flat_targets = flatten_dataset(dataset, common_times)
+    pitch, vel, harm, time, target = collate_batch(flat_inputs, flat_targets)
 
-            t_array = torch.tensor(time_grid, dtype=torch.float32, device=device)
-            p_tensor = torch.full_like(t_array, pitch, dtype=torch.float32)
-            v_tensor = torch.full_like(t_array, float(velocity), dtype=torch.float32)
-            h_tensor = torch.full_like(t_array, harmonic, dtype=torch.float32)
+    # Build dataloader
+    train_dataset = TensorDataset(pitch, vel, harm, time, target)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-            pred = model(p_tensor, v_tensor, h_tensor, t_array).cpu().numpy()
-            err = loss_function(pred, true)
-            harmonic_errors.append(err)
+    # Initialize model and optimizer
+    model = DirectTinyHarmonicModel(hidden_sizes=hidden_sizes).to(DEVICE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    loss_fn = torch.nn.MSELoss()
 
-    mean_err = np.mean(harmonic_errors)
-    print(f"✅ L2-normalized RMSE (per harmonic): {mean_err:.6f}")
-    return mean_err
+    # Train
+    train_model(model, train_loader, loss_fn, optimizer, DEVICE, epochs)
+
+    # Save model
+    torch.save(model.state_dict(), model_path)
+
+    return model

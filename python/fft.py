@@ -49,33 +49,6 @@ def get_harmonic(
         hop_size: Optional[int] = None,
         window_type: str = "hann",
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Compute amplitude over time of the 'harmonic'-th harmonic using a provided FFT window_size.
-
-    Parameters
-    ----------
-    signal : np.ndarray
-        1D float audio signal.
-    fs : float
-        Sampling rate (Hz).
-    window_size : int
-        FFT window size in samples (should usually come from find_window).
-    f0 : float
-        Fundamental frequency (Hz).
-    harmonic : int
-        Harmonic number to extract (1 = fundamental, 2 = second harmonic, ...).
-    hop_size : Optional[int]
-        Hop size in samples. If None, defaults to window_size // 4.
-    window_type : str
-        Window function for STFT ('hann', 'boxcar', ...).
-
-    Returns
-    -------
-    times : np.ndarray
-        STFT frame center times (seconds).
-    amplitudes : np.ndarray
-        Magnitude of the specified harmonic for each frame.
-    """
     if signal.ndim != 1:
         raise ValueError("signal must be a 1D numpy array")
     if hop_size is None:

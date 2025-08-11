@@ -1,17 +1,12 @@
-#!/usr/bin/env python3
-"""
-Test script to verify consistency between Python and C implementations
-"""
-
 import torch
 import subprocess
 import tempfile
 import os
+
 from model import DirectTinyHarmonicModel
 from constants import MODEL_PATH
 
 def test_consistency():
-    # Load Python model
     model = DirectTinyHarmonicModel(hidden_sizes=(8, 8, 4))
     if MODEL_PATH.exists():
         state_dict = torch.load(MODEL_PATH, map_location='cpu')
@@ -31,7 +26,6 @@ def test_consistency():
     print("=" * 60)
 
     for i, (pitch, velocity, harmonic, time) in enumerate(test_cases):
-        # Python prediction
         with torch.no_grad():
             py_result = model(
                 torch.tensor([pitch]),
@@ -40,7 +34,6 @@ def test_consistency():
                 torch.tensor([time])
             ).item()
 
-        # Create a temporary C program to test this specific input
         c_test_code = f'''
 #include <stdio.h>
 #include <math.h>
@@ -53,13 +46,11 @@ int main() {{
 }}
 '''
 
-        # Write temporary C file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.c', delete=False) as f:
             f.write(c_test_code)
             temp_c_file = f.name
 
         try:
-            # Compile and run C test
             temp_exe = temp_c_file.replace('.c', '')
             compile_result = subprocess.run([
                 'gcc', '-o', temp_exe, temp_c_file, 'src/model.c', 'src/weights.c', '-lm'
@@ -69,7 +60,6 @@ int main() {{
                 run_result = subprocess.run([temp_exe], capture_output=True, text=True)
                 c_result = float(run_result.stdout.strip())
 
-                # Compare results
                 diff = abs(py_result - c_result)
                 status = "✓ PASS" if diff < 1e-5 else "✗ FAIL"
 
@@ -84,7 +74,6 @@ int main() {{
                 print(compile_result.stderr)
 
         finally:
-            # Clean up temporary files
             for temp_file in [temp_c_file, temp_exe]:
                 if os.path.exists(temp_file):
                     os.unlink(temp_file)

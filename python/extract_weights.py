@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-"""
-Script to extract weights from the trained PyTorch model and generate
-C code with embedded weights.
-"""
-
 import torch
 
 from model import DirectTinyHarmonicModel
 from constants import WEIGHTS_PATH, MODEL_PATH
 
 def format_c_array(array, name, dtype="float"):
-    """Format a numpy array as a C array initialization."""
     flat = array.flatten()
 
     if dtype == "float":
@@ -31,8 +24,6 @@ def format_c_array(array, name, dtype="float"):
     return result
 
 def extract_weights_and_generate_c():
-    """Extract weights from trained model and generate weights C file."""
-
     model = DirectTinyHarmonicModel(hidden_sizes=(8, 8, 4))
 
     if MODEL_PATH.exists():

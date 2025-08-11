@@ -1,21 +1,17 @@
 import torch
 import torch.nn as nn
 
-from constants import PITCH_LOWEST, PITCH_HIGHEST, MAX_HARMONICS
+from constants import MAX_HARMONICS
 
 
 class DirectTinyHarmonicModel(nn.Module):
     def __init__(
             self,
-            pitch_min: int = PITCH_LOWEST,
-            pitch_max: int = PITCH_HIGHEST,
             num_harmonics: int = MAX_HARMONICS,
-            hidden_sizes: tuple = (64, 64, 32),  # Fully customizable
-            activation=nn.SiLU  # Or nn.Tanh, nn.ReLU, etc.
+            hidden_sizes: tuple = (64, 64, 32),
+            activation=nn.SiLU
     ):
         super().__init__()
-        self.pitch_min = pitch_min
-        self.pitch_max = pitch_max
         self.num_harmonics = num_harmonics
 
         layers = []
@@ -26,7 +22,7 @@ class DirectTinyHarmonicModel(nn.Module):
             layers.append(activation())
             input_dim = hidden_size
 
-        layers.append(nn.Linear(input_dim, 1))  # Final output layer
+        layers.append(nn.Linear(input_dim, 1))
 
         self.mlp = nn.Sequential(*layers)
 
