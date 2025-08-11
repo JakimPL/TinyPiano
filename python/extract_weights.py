@@ -3,6 +3,17 @@ import torch
 from model import DirectTinyHarmonicModel
 from constants import WEIGHTS_PATH, MODEL_PATH
 
+def infer_architecture_from_state_dict(state_dict):
+    weight_keys = [k for k in state_dict.keys() if k.endswith('.weight')]
+    weight_keys.sort(key=lambda x: int(x.split('.')[1]))
+    
+    hidden_sizes = []
+    for i, key in enumerate(weight_keys[:-1]):
+        output_size = state_dict[key].shape[0]
+        hidden_sizes.append(output_size)
+    
+    return tuple(hidden_sizes)
+
 def format_c_array(array, name, dtype="float"):
     flat = array.flatten()
 
@@ -23,15 +34,21 @@ def format_c_array(array, name, dtype="float"):
     result += "\n};\n"
     return result
 
-def extract_weights_and_generate_c():
-    model = DirectTinyHarmonicModel(hidden_sizes=(8, 8, 4))
-
-    if MODEL_PATH.exists():
-        print(f"Loading model weights from {MODEL_PATH}")
-        state_dict = torch.load(MODEL_PATH, map_location='cpu')
-        model.load_state_dict(state_dict)
-    else:
+def extract_weights():
+    # First, load the state dict to infer architecture
+    if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Trained model not found at {MODEL_PATH}. Please train the model first or provide a valid model file.")
+    
+    print(f"Loading model weights from {MODEL_PATH}")
+    state_dict = torch.load(MODEL_PATH, map_location='cpu')
+    
+    # Infer the architecture from the state dict
+    hidden_sizes = infer_architecture_from_state_dict(state_dict)
+    print(f"Inferred model architecture: hidden_sizes={hidden_sizes}")
+    
+    # Create model with inferred architecture
+    model = DirectTinyHarmonicModel(hidden_sizes=hidden_sizes)
+    model.load_state_dict(state_dict)
 
     model.eval()
 
@@ -118,4 +135,4 @@ extern float biases_out[];
         print(f"Python model({pitch}, {velocity}, {harmonic}, {time}) = {py_result:.6f}")
 
 if __name__ == "__main__":
-    extract_weights_and_generate_c()
+    extract_weights()
