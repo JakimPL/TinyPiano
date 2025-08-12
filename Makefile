@@ -59,7 +59,7 @@ tinypiano: setup
 tinypiano_4k: setup
 	cd $(BUILD_DIR) && make tinypiano_4k -j
 
-test_all: setup
+test: setup
 	cd $(BUILD_DIR) && make test_all
 
 clean:
@@ -83,7 +83,7 @@ info:
 	@echo "  build             - Build all targets"
 	@echo "  tinypiano         - Build standard executable"
 	@echo "  tinypiano_4k      - Build 4KB demo with Crinkler"
-	@echo "  test_all          - Build and run all tests"
+	@echo "  test              - Build and run all tests"
 	@echo "  dataset           - Build dataset from samples (Python)"
 	@echo "  train             - Train the model (Python)"
 	@echo "  extract_weights   - Extract neural network weights (Python)"

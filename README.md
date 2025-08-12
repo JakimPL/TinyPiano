@@ -96,7 +96,7 @@ make model              # Core neural network program
 make test_model         # Neural network tests
 make test_synth         # Synthesizer tests
 make test_song          # Song player tests
-make test_all           # Run all tests
+make test              # Run all tests
 make size               # Show binary sizes
 ```
 
@@ -224,7 +224,7 @@ gcc -O2 -o player your_program.c src/song.c src/synth.c src/model.c src/weights.
 ./build.sh --test
 
 # Or using CMake directly (from build/ directory)
-cd build && make test_all
+cd build && make test
 ```
 
 ## Performance & Code Size

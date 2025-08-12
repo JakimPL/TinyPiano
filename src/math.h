@@ -1,5 +1,13 @@
 #pragma once
 
+static inline float tiny_fmin(float a, float b) {
+    return (a < b) ? a : b;
+}
+
+static inline float tiny_fmax(float a, float b) {
+    return (a > b) ? a : b;
+}
+
 static inline float tiny_sin(float x) {
     float result;
     __asm__ volatile ("fsin" : "=t" (result) : "0" (x));
@@ -7,7 +15,6 @@ static inline float tiny_sin(float x) {
 }
 
 static inline float tiny_exp(float x) {
-    if (x > 10.0f) return 22026.0f;
     if (x < -10.0f) return 0.0f;
 
     float result;
@@ -51,6 +58,8 @@ static inline float tiny_fabs(float x) {
     return (x < 0.0f) ? -x : x;
 }
 
+#define fminf tiny_fmin
+#define fmaxf tiny_fmax
 #define sinf tiny_sin
 #define expf tiny_exp
 #define powf tiny_pow

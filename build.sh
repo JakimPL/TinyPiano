@@ -69,7 +69,7 @@ make -j$(nproc)
 # Run tests if requested
 if [ "$TESTS" = true ]; then
     echo -e "${YELLOW}Running tests...${NC}"
-    make test_all
+    make test
 fi
 
 echo -e "${GREEN}Build completed successfully!${NC}"

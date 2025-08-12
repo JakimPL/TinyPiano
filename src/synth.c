@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -14,7 +15,53 @@ float calculate_frequency(int pitch) {
 }
 
 void synthesize_note(
-    float* buffer, size_t buffer_size,
+    float* buffer, size_t start,
     int pitch, int velocity, float duration
 ) {
+    const float p = pitch / 127.0f;
+    const float v = velocity / 127.0f;
+
+    const float fundamental = calculate_frequency(pitch);
+    const float e = 1 / ESTIMATION_FREQUENCY;
+    const size_t estimation_samples = duration * ESTIMATION_FREQUENCY;
+    const size_t size = (duration + FADE_OUT_DURATION) * ESTIMATION_FREQUENCY;
+
+    float* waveform = (float*)calloc(size, sizeof(float));
+    for (uint8_t harmonic = 0; harmonic < MAX_HARMONICS; ++harmonic) {
+        const float h = harmonic / (MAX_HARMONICS - 1.0f);
+        const float f = 2 * M_PI * fundamental * (harmonic + 1);
+
+        float amplitude = 0.0f;
+        float next_amplitude = 0.0f;
+        for (size_t sample = 0; sample < size; ++sample) {
+            const float t = sample / ESTIMATION_FREQUENCY;
+            const size_t m = sample % estimation_samples;
+
+            if (m == 0) {
+                amplitude = next_amplitude;
+                next_amplitude = predict_amplitude(p, v, h, t + e);
+                const float fade_in = t / FADE_IN_DURATION;
+                const float fade_out = (duration + FADE_OUT_DURATION - t) / FADE_OUT_DURATION;
+                const float envelope = fminf(fade_in, fade_out);
+                next_amplitude *= fminf(1.0f, envelope);
+            }
+
+            const float a = (m * next_amplitude + (estimation_samples - m) * amplitude) / estimation_samples;
+            const float y = a * sinf(f * t);
+            waveform[sample] += y;
+        }
+    }
+
+    float peak = 0.0f;
+    for (size_t sample = 0; sample < size; ++sample) {
+        peak = fmaxf(peak, fabsf(waveform[sample]));
+    }
+
+    float gain = 0.5f / peak;
+    for (size_t sample = 0; sample < size; ++sample) {
+        waveform[sample] *= gain;
+    }
+
+    memcpy(buffer + start, waveform, size * sizeof(float));
+    free(waveform);
 }

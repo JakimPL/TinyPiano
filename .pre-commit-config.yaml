@@ -18,7 +18,7 @@ repos:
 
       - id: run-tests
         name: Run test suite
-        entry: bash -c 'cd build && make test_all'
+        entry: bash -c 'make test'
         language: system
         pass_filenames: false
         files: '^src/.*\.(c|h)$'

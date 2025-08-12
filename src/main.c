@@ -54,8 +54,9 @@ void play_audio(float* buffer, size_t samples) {
         return;
     }
 
-    while(!(whdr.dwFlags & WHDR_DONE))
-        Sleep(10);
+    while(!(whdr.dwFlags & WHDR_DONE)) {
+        Sleep(1);
+    }
 
     waveOutUnprepareHeader(hwo, &whdr, sizeof(whdr));
     waveOutClose(hwo);
@@ -65,11 +66,14 @@ void play_audio(float* buffer, size_t samples) {
 
 int main() {
     Song* song = create_midi_song();
-    const float song_duration = song->total_ticks * UNIT(song->bpm);
+    const float song_duration = song->total_ticks * UNIT(song->bpm) + FADE_OUT_DURATION;
     const size_t total_samples = (size_t)(song_duration * SAMPLE_RATE);
     float* buffer = malloc(total_samples * sizeof(float));
 
-    render_song(song, buffer, total_samples);
+    printf("Creating song with %zu notes and duration: %.2f seconds\n", song->note_count, song_duration);
+    render_song(song, buffer);
+
+    printf("Playing song with duration: %.2f seconds\n", song_duration);
     play_audio(buffer, total_samples);
 
     free(buffer);

@@ -8,8 +8,6 @@
 
 Song* create_song(const Note* notes, size_t note_count, uint16_t bpm) {
     Song* song = malloc(sizeof(Song));
-    if (!song) return NULL;
-
     song->notes = malloc(note_count * sizeof(Note));
     if (!song->notes) {
         free(song);
@@ -19,6 +17,7 @@ Song* create_song(const Note* notes, size_t note_count, uint16_t bpm) {
     for (size_t i = 0; i < note_count; i++) {
         song->notes[i] = notes[i];
     }
+
     song->note_count = note_count;
     song->bpm = bpm;
 
@@ -40,5 +39,13 @@ void free_song(Song* song) {
     }
 }
 
-void render_song(const Song *song, float *buffer, size_t buffer_size) {
+void render_song(const Song *song, float *buffer) {
+    const float unit = UNIT(song->bpm);
+    for (size_t i = 0; i < song->note_count; i++) {
+        const Note *note = &song->notes[i];
+        const size_t start = note->start * unit * SAMPLE_RATE;
+        const float duration = note->duration * unit;
+
+        synthesize_note(buffer, start, note->pitch, note->velocity, duration);
+    }
 }

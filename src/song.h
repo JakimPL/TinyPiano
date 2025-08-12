@@ -25,4 +25,4 @@ typedef struct {
 
 Song *create_song(const Note *notes, size_t note_count, uint16_t bpm);
 void free_song(Song *song);
-void render_song(const Song *song, float *buffer, size_t buffer_size);
+void render_song(const Song *song, float *buffer);
