@@ -16,7 +16,8 @@
 *.mp3
 *.ipynb
 
-model
+.idea/
+.vscode/
 
 bin/
 build/

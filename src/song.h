@@ -3,9 +3,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SAMPLE_RATE 48000
 #define TICKS_PER_QUARTER 480
 #define DEFAULT_BPM 120
-#define TICK_DURATION(bpm) (60.0f / ((bpm) * TICKS_PER_QUARTER))
+#define UNIT(bpm) (60.0f / ((bpm) * TICKS_PER_QUARTER))
 
 typedef struct {
   uint8_t pitch;
@@ -24,5 +25,4 @@ typedef struct {
 
 Song *create_song(const Note *notes, size_t note_count, uint16_t bpm);
 void free_song(Song *song);
-size_t render_song(const Song *song, float *buffer, size_t buffer_size,
-                   int sample_rate);
+void render_song(const Song *song, float *buffer, size_t buffer_size);

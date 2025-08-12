@@ -26,7 +26,7 @@ strip --strip-debug build\synth.o
 strip --strip-debug build\weights.o
 
 echo Running Crinkler with working configuration...
-crinkler /OUT:bin/tinypiano_4k.exe /TINYHEADER /TINYIMPORT /SUBSYSTEM:CONSOLE /COMPMODE:SLOW /HASHSIZE:500 /HASHTRIES:100 /ORDERTRIES:10000 build/main.o build/model.o build/song.o build/data.o build/synth.o build/weights.o "%WINKIT_LIB%\kernel32.lib"
+crinkler /OUT:bin/tinypiano_4k.exe /TINYHEADER /TINYIMPORT /SUBSYSTEM:CONSOLE /COMPMODE:SLOW /HASHSIZE:500 /HASHTRIES:100 /ORDERTRIES:10000 build/main.o build/model.o build/song.o build/data.o build/synth.o build/weights.o "%WINKIT_LIB%\kernel32.lib"  "%WINKIT_LIB%\winmm.lib"
 
 echo ============================================================
 echo Crinkler compression completed!

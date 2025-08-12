@@ -70,7 +70,7 @@ add_library(tinypiano_midi STATIC ${MIDI_SOURCES})
 add_library(tinypiano_io STATIC ${IO_SOURCES})
 
 add_executable(tinypiano src/main.c)
-target_link_libraries(tinypiano tinypiano_midi m)
+target_link_libraries(tinypiano tinypiano_midi m winmm)
 
 add_executable(test_model src/tests/test_model_output.c)
 target_link_libraries(test_model tinypiano_core m)
@@ -106,19 +106,21 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
         -ffunction-sections
         -nostartfiles
     )
-    
+
     target_compile_definitions(tinypiano_4k PRIVATE
         TINYHEADER
         TINYIMPORT
     )
 
     target_include_directories(tinypiano_4k PRIVATE src)
-    
+
     set_target_properties(tinypiano_4k PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
         OUTPUT_NAME tinypiano_4k
     )
-    
+
+    target_link_libraries(tinypiano_4k m winmm)
+
     add_custom_command(TARGET tinypiano_4k POST_BUILD
         COMMAND ${CMAKE_SOURCE_DIR}/crinkler_build.bat
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -128,42 +130,3 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 else()
     message(WARNING "4KB demo target requires GCC compiler for Crinkler compatibility")
 endif()
-
-add_custom_target(extract_weights
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/python/extract_weights.py
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Extracting weights from PyTorch model"
-)
-
-add_custom_target(convert_midi
-    COMMAND echo "MIDI converter ready. Usage: python3 python/convert_midi.py midi/file.mid"
-    COMMENT "MIDI converter setup"
-)
-
-add_custom_target(test_all
-    COMMAND echo "Running neural network test..." && ${CMAKE_SOURCE_DIR}/bin/test_model
-    COMMAND echo "Running synthesizer test..." && ${CMAKE_SOURCE_DIR}/bin/test_synth
-    COMMAND echo "Running song player test..." && ${CMAKE_SOURCE_DIR}/bin/test_song
-    COMMAND echo "All tests completed."
-    DEPENDS test_model test_synth test_song
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Running all tests"
-)
-
-add_custom_target(size
-    COMMAND echo "Binary sizes:" && ls -lh ${CMAKE_SOURCE_DIR}/bin/* 2>/dev/null | awk '{print $$9 ": " $$5}' || true
-    COMMAND echo "Library sizes:" && ls -lh ${CMAKE_SOURCE_DIR}/build/lib/* 2>/dev/null | awk '{print $$9 ": " $$5}' || true
-    COMMENT "Showing binary and library sizes"
-)
-
-add_custom_target(install_deps
-    COMMAND pip install torch mido
-    COMMENT "Installing Python dependencies"
-)
-
-add_custom_target(clean_all
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target clean
-    COMMAND rm -rf ${CMAKE_SOURCE_DIR}/bin/*
-    COMMAND rm -f ${CMAKE_SOURCE_DIR}/song_output.txt
-    COMMENT "Cleaning all build artifacts and outputs"
-)

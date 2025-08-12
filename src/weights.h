@@ -1,9 +1,9 @@
 #pragma once
 
 #define INPUT_SIZE 4
-#define HIDDEN1_SIZE 8
-#define HIDDEN2_SIZE 8
-#define HIDDEN3_SIZE 4
+#define HIDDEN1_SIZE 64
+#define HIDDEN2_SIZE 64
+#define HIDDEN3_SIZE 32
 #define OUTPUT_SIZE 1
 
 extern float weights1[];
