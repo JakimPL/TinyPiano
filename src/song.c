@@ -45,7 +45,6 @@ void render_song(const Song *song, float *buffer) {
         const Note *note = &song->notes[i];
         const size_t start = note->start * unit * SAMPLE_RATE;
         const float duration = note->duration * unit;
-
         synthesize_note(buffer, start, note->pitch, note->velocity, duration);
     }
 }

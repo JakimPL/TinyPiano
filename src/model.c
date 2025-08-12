@@ -43,5 +43,5 @@ float predict_amplitude(float pitch, float velocity, float harmonic, float time)
     apply_silu(hidden3, HIDDEN3_SIZE);
 
     linear_layer(hidden3, weights_out, biases_out, output, HIDDEN3_SIZE, OUTPUT_SIZE);
-    return output[0];
+    return expf(output[0]);
 }
