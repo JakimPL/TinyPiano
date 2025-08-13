@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
-#include "synth.h"
+#include "maths.h"
 #include "model.h"
+#include "synth.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -34,7 +34,7 @@ void synthesize_note(
         float amplitude = 0.0f;
         float next_amplitude = 0.0f;
         for (size_t sample = 0; sample < size; ++sample) {
-            const float t = sample / SAMPLE_RATE;
+            const float t = (float)sample / SAMPLE_RATE;
             const size_t m = sample % estimation_samples;
 
             if (m == 0) {
@@ -58,11 +58,11 @@ void synthesize_note(
         peak = fmaxf(peak, fabsf(waveform[sample]));
     }
 
-    float gain = 0.5f / peak;
+    float gain = 0.2f / peak;
     for (size_t sample = 0; sample < size; ++sample) {
         waveform[sample] *= gain;
         buffer[start + sample] += waveform[sample];
     }
-    
+
     free(waveform);
 }

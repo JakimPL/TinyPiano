@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "math.h"
+#include "maths.h"
 #include "model.h"
 
 float silu(float x) {

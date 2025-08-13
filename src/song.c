@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "math.h"
+#include "maths.h"
 #include "song.h"
 #include "synth.h"
 

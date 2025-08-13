@@ -42,6 +42,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 set(CORE_SOURCES
     src/model.c
     src/weights.c
+    src/maths.c
 )
 
 set(SYNTH_SOURCES
@@ -81,7 +82,21 @@ target_link_libraries(test_synth tinypiano_synth m)
 add_executable(test_song src/tests/test_song.c src/tests/test_data.c)
 target_link_libraries(test_song tinypiano_song tinypiano_io m)
 
+add_executable(test_math src/tests/test_math.c)
+target_link_libraries(test_math tinypiano_core m)
+
+add_custom_target(test_all
+    COMMAND echo "Running all tests..."
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_model
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_synth
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_song
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_math
+    DEPENDS test_model test_synth test_song test_math
+    COMMENT "Running complete test suite"
+)
+
 add_executable(tinypiano_4k
+    src/maths.c
     src/main.c
     src/model.c
     src/song.c

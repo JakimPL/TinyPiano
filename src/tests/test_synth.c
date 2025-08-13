@@ -8,9 +8,8 @@ int main() {
     int pitch = 69;
     int velocity = 100;
     float duration = 1.0f;
-    int sample_rate = SAMPLE_RATE;
 
-    size_t buffer_size = (size_t)(duration * sample_rate);
+    size_t buffer_size = (size_t)(duration * SAMPLE_RATE);
 
     float* buffer = malloc(buffer_size * sizeof(float));
     if (!buffer) {
@@ -22,12 +21,11 @@ int main() {
     printf("  Pitch: %d (%.2f Hz)\n", pitch, calculate_frequency(pitch));
     printf("  Velocity: %d\n", velocity);
     printf("  Duration: %.2f seconds\n", duration);
-    printf("  Sample rate: %d Hz\n", sample_rate);
+    printf("  Sample rate: %d Hz\n", SAMPLE_RATE);
     printf("  Buffer size: %zu samples\n", buffer_size);
 
-    size_t samples_written = synthesize_note(buffer, buffer_size,
-                                           pitch, velocity, duration,
-                                           sample_rate);
+    synthesize_note(buffer, buffer_size, pitch, velocity, duration);
+    size_t samples_written = buffer_size;
 
     printf("Generated %zu samples\n", samples_written);
 
