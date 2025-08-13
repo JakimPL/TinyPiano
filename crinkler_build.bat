@@ -16,6 +16,7 @@ copy build\CMakeFiles\tinypiano_4k.dir\src\song.c.obj build\song.o
 copy build\CMakeFiles\tinypiano_4k.dir\src\data.c.obj build\data.o
 copy build\CMakeFiles\tinypiano_4k.dir\src\synth.c.obj build\synth.o
 copy build\CMakeFiles\tinypiano_4k.dir\src\weights.c.obj build\weights.o
+copy build\CMakeFiles\tinypiano_4k.dir\src\maths.c.obj build\maths.o
 
 echo Stripping debug symbols...
 strip --strip-debug build\main.o
@@ -24,9 +25,10 @@ strip --strip-debug build\song.o
 strip --strip-debug build\data.o
 strip --strip-debug build\synth.o
 strip --strip-debug build\weights.o
+strip --strip-debug build\maths.o
 
 echo Running Crinkler with working configuration...
-crinkler /OUT:bin/tinypiano_4k.exe /TINYHEADER /TINYIMPORT /SUBSYSTEM:CONSOLE /COMPMODE:SLOW /HASHSIZE:500 /HASHTRIES:100 /ORDERTRIES:10000 build/main.o build/model.o build/song.o build/data.o build/synth.o build/weights.o "%WINKIT_LIB%\kernel32.lib"  "%WINKIT_LIB%\winmm.lib"
+crinkler /OUT:bin\tinypiano_4k.exe /TINYHEADER /TINYIMPORT /SUBSYSTEM:CONSOLE /COMPMODE:SLOW /HASHSIZE:500 /HASHTRIES:100 /ORDERTRIES:10000 build/main.o build/model.o build/song.o build/data.o build/synth.o build/weights.o build/maths.o "%WINKIT_LIB%\kernel32.lib"  "%WINKIT_LIB%\winmm.lib"
 
 echo ============================================================
 echo Crinkler compression completed!

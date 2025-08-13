@@ -58,7 +58,7 @@ void synthesize_note(
         peak = fmaxf(peak, fabsf(waveform[sample]));
     }
 
-    float gain = 0.2f / peak;
+    float gain = MASTER_GAINER / peak;
     for (size_t sample = 0; sample < size; ++sample) {
         waveform[sample] *= gain;
         buffer[start + sample] += waveform[sample];

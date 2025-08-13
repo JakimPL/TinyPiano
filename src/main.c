@@ -70,10 +70,14 @@ int main() {
     const size_t total_samples = (size_t)(song_duration * SAMPLE_RATE);
     float* buffer = malloc(total_samples * sizeof(float));
 
+#ifdef PRINT
     printf("Creating song with %zu notes and duration: %.2f seconds\n", song->note_count, song_duration);
+#endif
     render_song(song, buffer);
 
+#ifdef PRINT
     printf("Playing song with duration: %.2f seconds\n", song_duration);
+#endif
     play_audio(buffer, total_samples);
 
     free(buffer);
