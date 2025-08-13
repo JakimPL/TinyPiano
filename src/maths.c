@@ -18,7 +18,6 @@ float tiny_sin(float x) {
     return result;
 }
 
-// log2(x) using native fyl2x
 static float tiny_log2(float x) {
     float result;
     __asm__ volatile (
