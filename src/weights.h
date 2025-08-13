@@ -1,9 +1,9 @@
 #pragma once
 
 #define INPUT_SIZE 4
-#define HIDDEN1_SIZE 64
-#define HIDDEN2_SIZE 64
-#define HIDDEN3_SIZE 32
+#define HIDDEN1_SIZE 16
+#define HIDDEN2_SIZE 16
+#define HIDDEN3_SIZE 8
 #define OUTPUT_SIZE 1
 
 extern unsigned char weights1_q[];
